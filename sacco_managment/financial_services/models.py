@@ -4,6 +4,9 @@ from account.models import Account
 from shortuuid.django_fields import ShortUUIDField
 from core.models import Transaction
 
+# Import subscription models
+from .subscription_models import SubscriptionPlan, Subscription, SubscriptionPayment
+
 class ExchangeRate(models.Model):
     base_currency = models.CharField(max_length=3, default='USD')
     target_currency = models.CharField(max_length=3)

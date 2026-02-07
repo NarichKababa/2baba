@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-check-circle"></i> Confirm Subscription
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-info-circle"></i> Subscription Summary</h5>
+                        <p>You are about to subscribe to the following plan:</p>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ plan.name }}</h5>
+                            {% if plan.description %}
+                                <p class="card-text">{{ plan.description }}</p>
+                            {% endif %}
+                            
+                            <table class="table table-bordered mt-3">
+                                <tr>
+                                    <th width="40%">Amount:</th>
+                                    <td><strong>${{ plan.amount }}</strong></td>
+                                </tr>
+                                <tr>
+                                    <th>Billing Frequency:</th>
+                                    <td>{{ plan.get_frequency_display }}</td>
+                                </tr>
+                                <tr>
+                                    <th>First Payment:</th>
+                                    <td>Today (${plan.amount})</td>
+                                </tr>
+                                <tr>
+                                    <th>Auto-Renew:</th>
+                                    <td>Yes (You can cancel anytime)</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-exclamation-triangle"></i> Important Information</h6>
+                        <ul class="mb-0">
+                            <li>Your first payment of <strong>${{ plan.amount }}</strong> will be charged immediately</li>
+                            <li>Future payments will be automatically charged {{ plan.get_frequency_display|lower }}</li>
+                            <li>You can cancel your subscription at any time</li>
+                            <li>No refunds for partial billing periods</li>
+                        </ul>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-check-circle"></i> Confirm & Subscribe
+                            </button>
+                            <a href="{% url 'financial_services:available-plans' %}" 
+                               class="btn btn-secondary btn-lg">
+                                <i class="fas fa-arrow-left"></i> Back to Plans
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

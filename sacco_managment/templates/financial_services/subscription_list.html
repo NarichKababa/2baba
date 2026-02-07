@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">My Subscriptions</h2>
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="mb-3">
+                <a href="{% url 'financial_services:available-plans' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Browse Available Plans
+                </a>
+            </div>
+
+            <!-- Active Subscriptions -->
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Active Subscriptions ({{ active_subscriptions.count }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if active_subscriptions %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Plan</th>
+                                        <th>Amount</th>
+                                        <th>Frequency</th>
+                                        <th>Next Billing</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for subscription in active_subscriptions %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ subscription.plan.name }}</strong><br>
+                                                <small class="text-muted">{{ subscription.plan.description|truncatewords:10 }}</small>
+                                            </td>
+                                            <td>${{ subscription.plan.amount }}</td>
+                                            <td>{{ subscription.plan.get_frequency_display }}</td>
+                                            <td>{{ subscription.next_billing_date|date:"M d, Y" }}</td>
+                                            <td>
+                                                <span class="badge bg-success">{{ subscription.get_status_display }}</span>
+                                                {% if subscription.auto_renew %}
+                                                    <span class="badge bg-info">Auto-Renew</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <a href="{% url 'financial_services:subscription-detail' subscription.subscription_id %}" 
+                                                   class="btn btn-sm btn-info">
+                                                    <i class="fas fa-eye"></i> View
+                                                </a>
+                                                <a href="{% url 'financial_services:unsubscribe' subscription.subscription_id %}" 
+                                                   class="btn btn-sm btn-danger">
+                                                    <i class="fas fa-times"></i> Unsubscribe
+                                                </a>
+                                                <a href="{% url 'financial_services:pause-subscription' subscription.subscription_id %}" 
+                                                   class="btn btn-sm btn-warning">
+                                                    <i class="fas fa-pause"></i> Pause
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">You don't have any active subscriptions.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Paused Subscriptions -->
+            {% if paused_subscriptions %}
+                <div class="card mb-4">
+                    <div class="card-header bg-warning">
+                        <h5 class="mb-0">Paused Subscriptions ({{ paused_subscriptions.count }})</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Plan</th>
+                                        <th>Amount</th>
+                                        <th>Frequency</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for subscription in paused_subscriptions %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ subscription.plan.name }}</strong><br>
+                                                <small class="text-muted">{{ subscription.plan.description|truncatewords:10 }}</small>
+                                            </td>
+                                            <td>${{ subscription.plan.amount }}</td>
+                                            <td>{{ subscription.plan.get_frequency_display }}</td>
+                                            <td>
+                                                <span class="badge bg-warning">{{ subscription.get_status_display }}</span>
+                                            </td>
+                                            <td>
+                                                <a href="{% url 'financial_services:subscription-detail' subscription.subscription_id %}" 
+                                                   class="btn btn-sm btn-info">
+                                                    <i class="fas fa-eye"></i> View
+                                                </a>
+                                                <a href="{% url 'financial_services:resume-subscription' subscription.subscription_id %}" 
+                                                   class="btn btn-sm btn-success">
+                                                    <i class="fas fa-play"></i> Resume
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Cancelled Subscriptions -->
+            {% if cancelled_subscriptions %}
+                <div class="card mb-4">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0">Cancelled Subscriptions ({{ cancelled_subscriptions.count }})</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Plan</th>
+                                        <th>Amount</th>
+                                        <th>Cancelled On</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for subscription in cancelled_subscriptions %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ subscription.plan.name }}</strong><br>
+                                                <small class="text-muted">{{ subscription.plan.description|truncatewords:10 }}</small>
+                                            </td>
+                                            <td>${{ subscription.plan.amount }}</td>
+                                            <td>{{ subscription.cancelled_at|date:"M d, Y" }}</td>
+                                            <td>
+                                                <a href="{% url 'financial_services:subscription-detail' subscription.subscription_id %}" 
+                                                   class="btn btn-sm btn-info">
+                                                    <i class="fas fa-eye"></i> View
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

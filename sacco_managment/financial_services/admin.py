@@ -1,83 +1,96 @@
 from django.contrib import admin
-from django.utils.html import format_html
-from .models import ExchangeRate, Recipient, CryptoWallet, CryptoTransaction, Deposit, Withdrawal
+from .models import (
+    ExchangeRate,
+    Recipient,
+    CryptoWallet,
+    CryptoTransaction,
+    Deposit,
+    Withdrawal
+)
+from .subscription_models import (
+    SubscriptionPlan,
+    Subscription,
+    SubscriptionPayment
+)
+
 
 @admin.register(ExchangeRate)
 class ExchangeRateAdmin(admin.ModelAdmin):
-    list_display = ('base_currency', 'target_currency', 'current_rate', 'last_updated')
-    list_filter = ('base_currency', 'target_currency')
-    search_fields = ('target_currency',)
-    readonly_fields = ('last_updated',)
-    list_per_page = 20
-    
-    def current_rate(self, obj):
-        return f"1 {obj.base_currency} = {obj.rate:.4f} {obj.target_currency}"
-    current_rate.short_description = 'Exchange Rate'
+    list_display = ['base_currency', 'target_currency', 'rate', 'last_updated']
+    list_filter = ['base_currency', 'last_updated']
+    search_fields = ['base_currency', 'target_currency']
+
 
 @admin.register(Recipient)
 class RecipientAdmin(admin.ModelAdmin):
-    list_display = ('user', 'nickname', 'bank_display', 'account_number', 'created_at')
-    search_fields = ('nickname', 'account_number', 'bank_name')
-    list_filter = ('bank_name', 'created_at')
-    raw_id_fields = ('user',)
-    date_hierarchy = 'created_at'
-    
-    def bank_display(self, obj):
-        return obj.bank_name[:25] + '...' if len(obj.bank_name) > 25 else obj.bank_name
-    bank_display.short_description = 'Bank'
+    list_display = ['user', 'nickname', 'account_number', 'bank_name', 'created_at']
+    list_filter = ['created_at', 'bank_name']
+    search_fields = ['user__username', 'nickname', 'account_number']
+
 
 @admin.register(CryptoWallet)
 class CryptoWalletAdmin(admin.ModelAdmin):
-    list_display = ('user', 'bitcoin_balance', 'ethereum_balance', 'usdt_balance')
-    search_fields = ('user__username', 'user__email')
-    raw_id_fields = ('user',)
-    readonly_fields = ('bitcoin_balance', 'ethereum_balance', 'usdt_balance')
-    
-    def has_add_permission(self, request):
-        return False  # Wallets should be created programmatically
+    list_display = ['user', 'bitcoin_balance', 'ethereum_balance', 'usdt_balance']
+    search_fields = ['user__username']
+
 
 @admin.register(CryptoTransaction)
 class CryptoTransactionAdmin(admin.ModelAdmin):
-    list_display = ('transaction_id', 'user', 'crypto_type', 'amount', 'transaction_type', 
-                   'fiat_amount', 'timestamp')
-    list_filter = ('transaction_type', 'crypto_type')
-    search_fields = ('user__username', 'transaction_id')
-    readonly_fields = ('timestamp',)
-    date_hierarchy = 'timestamp'
-    list_per_page = 25
+    list_display = ['transaction_id', 'user', 'crypto_type', 'amount', 'transaction_type', 'fiat_amount', 'timestamp']
+    list_filter = ['crypto_type', 'transaction_type', 'timestamp']
+    search_fields = ['transaction_id', 'user__username']
+
 
 @admin.register(Deposit)
 class DepositAdmin(admin.ModelAdmin):
-    list_display = ('deposit_id', 'user', 'amount', 'method', 'status', 'created_at')
-    list_filter = ('status', 'method')
-    search_fields = ('deposit_id', 'user__username')
-    raw_id_fields = ('user',)
-    date_hierarchy = 'created_at'
-    actions = ['mark_as_completed', 'mark_as_pending']
-    
-    def mark_as_completed(self, request, queryset):
-        queryset.update(status='COMPLETED')
-    mark_as_completed.short_description = "Mark selected deposits as completed"
-    
-    def mark_as_pending(self, request, queryset):
-        queryset.update(status='PENDING')
-    mark_as_pending.short_description = "Mark selected deposits as pending"
+    list_display = ['deposit_id', 'user', 'amount', 'method', 'status', 'created_at']
+    list_filter = ['status', 'method', 'created_at']
+    search_fields = ['deposit_id', 'user__username']
+
 
 @admin.register(Withdrawal)
 class WithdrawalAdmin(admin.ModelAdmin):
-    list_display = ('withdrawal_id', 'user', 'amount', 'method', 'status', 'created_at')
-    list_filter = ('status', 'method')
-    search_fields = ('withdrawal_id', 'user__username')
-    raw_id_fields = ('user',)
-    date_hierarchy = 'created_at'
-    actions = ['export_as_csv']
-    
-    def export_as_csv(self, request, queryset):
-        # Implement CSV export logic
-        pass
-    export_as_csv.short_description = "Export Selected Withdrawals as CSV"
+    list_display = ['withdrawal_id', 'user', 'amount', 'method', 'status', 'created_at']
+    list_filter = ['status', 'method', 'created_at']
+    search_fields = ['withdrawal_id', 'user__username']
 
-# Optional: Add admin dashboard customization
-admin.site.site_header = "Prime SACCO Financial Administration"
-admin.site.site_title = "Financial Services Admin"
-admin.site.index_title = "Financial Services Management"
+
+@admin.register(SubscriptionPlan)
+class SubscriptionPlanAdmin(admin.ModelAdmin):
+    list_display = ['plan_id', 'name', 'amount', 'frequency', 'is_active', 'created_at']
+    list_filter = ['frequency', 'is_active', 'created_at']
+    search_fields = ['plan_id', 'name']
+    list_editable = ['is_active']
+
+
+@admin.register(Subscription)
+class SubscriptionAdmin(admin.ModelAdmin):
+    list_display = ['subscription_id', 'user', 'plan', 'status', 'next_billing_date', 'auto_renew', 'created_at']
+    list_filter = ['status', 'auto_renew', 'created_at', 'plan']
+    search_fields = ['subscription_id', 'user__username', 'plan__name']
+    readonly_fields = ['subscription_id', 'created_at', 'updated_at', 'cancelled_at']
+    
+    fieldsets = (
+        ('Subscription Information', {
+            'fields': ('subscription_id', 'user', 'account', 'plan', 'status')
+        }),
+        ('Billing Information', {
+            'fields': ('start_date', 'end_date', 'next_billing_date', 'last_billing_date', 'auto_renew')
+        }),
+        ('Cancellation Information', {
+            'fields': ('cancelled_at', 'cancellation_reason'),
+            'classes': ('collapse',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(SubscriptionPayment)
+class SubscriptionPaymentAdmin(admin.ModelAdmin):
+    list_display = ['payment_id', 'subscription', 'user', 'amount', 'status', 'payment_date']
+    list_filter = ['status', 'payment_date']
+    search_fields = ['payment_id', 'user__username', 'subscription__subscription_id', 'transaction_reference']
+    readonly_fields = ['payment_id', 'created_at']

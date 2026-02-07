@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-warning">
+                    <h4 class="mb-0">
+                        <i class="fas fa-pause-circle"></i> Pause Subscription
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-info-circle"></i> Pause Your Subscription</h5>
+                        <p>Pausing your subscription will:</p>
+                        <ul>
+                            <li>Stop all future billing</li>
+                            <li>Maintain your subscription data</li>
+                            <li>Allow you to resume anytime</li>
+                        </ul>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5>Subscription Details</h5>
+                        <table class="table table-bordered">
+                            <tr>
+                                <th width="30%">Plan Name:</th>
+                                <td>{{ subscription.plan.name }}</td>
+                            </tr>
+                            <tr>
+                                <th>Amount:</th>
+                                <td>${{ subscription.plan.amount }} / {{ subscription.plan.get_frequency_display }}</td>
+                            </tr>
+                            <tr>
+                                <th>Next Billing Date:</th>
+                                <td>{{ subscription.next_billing_date|date:"M d, Y" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            {% for field in form %}
+                                <div class="mb-3">
+                                    <label class="form-label">{{ field.label }}</label>
+                                    {{ field }}
+                                    {% if field.errors %}
+                                        <div class="text-danger">
+                                            {% for error in field.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-warning btn-lg">
+                                <i class="fas fa-pause"></i> Pause Subscription
+                            </button>
+                            <a href="{% url 'financial_services:subscription-detail' subscription.subscription_id %}" 
+                               class="btn btn-secondary btn-lg">
+                                <i class="fas fa-arrow-left"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

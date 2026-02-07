@@ -1,5 +1,6 @@
 from django.urls import path
 from financial_services import views
+from financial_services import subscription_views
 
 
 app_name = "financial_services"
@@ -28,6 +29,16 @@ urlpatterns = [
     # Withdrawal
     path("withdraw/", views.initiate_withdrawal, name="initiate-withdrawal"),
     path("withdraw/process/", views.process_withdrawal, name="process-withdrawal"),
+    
+    # Subscriptions
+    path("subscriptions/", subscription_views.subscription_list, name="subscription-list"),
+    path("subscriptions/<str:subscription_id>/", subscription_views.subscription_detail, name="subscription-detail"),
+    path("subscriptions/<str:subscription_id>/unsubscribe/", subscription_views.unsubscribe, name="unsubscribe"),
+    path("subscriptions/<str:subscription_id>/pause/", subscription_views.pause_subscription, name="pause-subscription"),
+    path("subscriptions/<str:subscription_id>/resume/", subscription_views.resume_subscription, name="resume-subscription"),
+    path("subscriptions/<str:subscription_id>/payment-history/", subscription_views.subscription_payment_history, name="subscription-payment-history"),
+    path("plans/", subscription_views.available_plans, name="available-plans"),
+    path("plans/<str:plan_id>/subscribe/", subscription_views.subscribe_to_plan, name="subscribe-to-plan"),
     
     # path('dashboard/', views.dashboard, name='dashboard'),
 

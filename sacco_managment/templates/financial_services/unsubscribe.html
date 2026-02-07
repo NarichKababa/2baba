@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle"></i> Unsubscribe from {{ subscription.plan.name }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <div class="alert alert-warning">
+                        <h5><i class="fas fa-info-circle"></i> Before you go...</h5>
+                        <p>We're sorry to see you leave. Here's what will happen when you unsubscribe:</p>
+                        <ul>
+                            <li>Your subscription will be cancelled immediately</li>
+                            <li>You will not be charged again</li>
+                            <li>Your access will continue until {{ subscription.next_billing_date|date:"M d, Y" }}</li>
+                            <li>You can resubscribe anytime</li>
+                        </ul>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5>Subscription Details</h5>
+                        <table class="table table-bordered">
+                            <tr>
+                                <th width="30%">Plan Name:</th>
+                                <td>{{ subscription.plan.name }}</td>
+                            </tr>
+                            <tr>
+                                <th>Amount:</th>
+                                <td>${{ subscription.plan.amount }} / {{ subscription.plan.get_frequency_display }}</td>
+                            </tr>
+                            <tr>
+                                <th>Next Billing Date:</th>
+                                <td>{{ subscription.next_billing_date|date:"M d, Y" }}</td>
+                            </tr>
+                            <tr>
+                                <th>Subscription ID:</th>
+                                <td>{{ subscription.subscription_id }}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <h5>Please tell us why you're cancelling:</h5>
+                            {% for field in form %}
+                                <div class="mb-3">
+                                    <label class="form-label">{{ field.label }}</label>
+                                    {{ field }}
+                                    {% if field.errors %}
+                                        <div class="text-danger">
+                                            {% for error in field.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    {% if field.help_text %}
+                                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger btn-lg">
+                                <i class="fas fa-times-circle"></i> Confirm Unsubscribe
+                            </button>
+                            <a href="{% url 'financial_services:subscription-detail' subscription.subscription_id %}" 
+                               class="btn btn-secondary btn-lg">
+                                <i class="fas fa-arrow-left"></i> Keep My Subscription
+                            </a>
+                        </div>
+                    </form>
+
+                    <div class="mt-4 text-center">
+                        <p class="text-muted">
+                            <small>
+                                Need help? <a href="#">Contact Support</a>
+                            </small>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-check-input {
+        margin-right: 10px;
+    }
+    .form-check {
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+    .form-check:hover {
+        background-color: #f8f9fa;
+        border-radius: 5px;
+    }
+</style>
+{% endblock %}
